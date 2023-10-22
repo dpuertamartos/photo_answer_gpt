@@ -113,7 +113,7 @@ class logIn:
     def login(self):
         #wait for log in button
         page_load_wait = WebDriverWait(self.driver, 20)
-        log_in = page_load_wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div[1]/div[2]/div[1]/div/div/button[1]")))
+        log_in = page_load_wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-testid="login-button"]')))
         log_in.click()
 
         #google_login
