@@ -1,8 +1,9 @@
 from time import sleep
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from selenium.common.exceptions import TimeoutException
 
 class logIn:
 
@@ -29,6 +30,7 @@ class logIn:
         next_btn_google = self.driver.find_elements(By.XPATH, "/html/body/div[1]/div[1]/div[2]/div/c-wiz/div/div[2]/div/div[2]/div/div[1]/div/div/button/span")[0]
         next_btn_google.click()
 
+        #usal login
         usal_wait = WebDriverWait(self.driver, 20)
         send_usal_credential = usal_wait.until(EC.element_to_be_clickable(
             (By.XPATH, "/html/body/div/div[2]/div[3]/div[1]/div[1]/div[1]/div[1]/form/div[2]/div[2]/input")))
@@ -41,15 +43,26 @@ class logIn:
         password.send_keys(self.password)
         send_usal_credential.click()
 
-        sleep(10)
-        next_button = self.driver.find_elements(By.TAG_NAME, "button")[0]
-        next_button.click()
+        # continue google check
+        try:
+            continue_google_wait = WebDriverWait(self.driver, 15)
+            continue_button = continue_google_wait.until(EC.element_to_be_clickable((By.XPATH,
+                                                                                     "/html/body/div[1]/div[1]/div[2]/div/div[2]/div/div/div[2]/div/div[2]/div/div[1]/div/div/button/span")))
+            continue_button.click()
+        except TimeoutException:
+            print("Continue button not found. Skipping...")
 
-        letsgo_wait = WebDriverWait(self.driver, 20)
-        letsgo_button = letsgo_wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[5]/div/div/div/div[2]/div/div[4]/button/div")))
+        # lets_go chat gpt button
+        try:
+            letsgo_wait = WebDriverWait(self.driver, 15)
+            letsgo_button = letsgo_wait.until(EC.element_to_be_clickable(
+                (By.XPATH, "/html/body/div[8]/div/div/div/div[2]/div/div[4]/button/div")))
+            letsgo_button.click()
+        except TimeoutException:
+            print("Lets go button not found. Pressing enter...")
+            body = self.driver.find_element(By.TAG_NAME, 'body')
+            body.send_keys(Keys.ENTER)
+
         sleep(1)
-        letsgo_button.click()
-
-        sleep(3)
 
 
