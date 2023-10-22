@@ -9,11 +9,19 @@ class chatGPTHandler:
         self.driver = driver
 
     def send_input(self, prompt):
+
+        sleep(1)
+        #remove popup if exist
+        try:
+            popup = self.driver.find_elements(By.XPATH, "/html/body/div[1]/div/div[1]/button/svg/line[2]")
+            popup.click()
+        except:
+            pass
+
         inputElements = self.driver.find_elements(By.TAG_NAME, "textarea")
         inputElements[0].click()
-        sleep(1)
         inputElements[0].send_keys(prompt)
-        sleep(2)
+        sleep(1)
         inputElements[0].send_keys(Keys.ENTER)
 
     def obtain_output(self):
@@ -22,7 +30,7 @@ class chatGPTHandler:
             EC.presence_of_element_located((By.XPATH, "//button[contains(., 'Regenerate')]")))
 
         # Now that the button has appeared, proceed to fetch the desired paragraphs
-        outputElements = self.driver.find_elements(By.TAG_NAME, "p")[-2::]
+        outputElements = self.driver.find_elements(By.TAG_NAME, "p")
 
         results = []
         for element in outputElements:
@@ -32,7 +40,7 @@ class chatGPTHandler:
         if results and results[-1] == "ChatGPT":
             results.pop()
 
-        return results[-1]
+        return "\n".join(results)
 
     def send_prompt(self, prompt):
         '''
