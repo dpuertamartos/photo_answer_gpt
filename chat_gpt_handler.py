@@ -9,20 +9,12 @@ class chatGPTHandler:
         self.driver = driver
 
     def send_input(self, prompt):
-
+        print("sending input")
         sleep(1)
-        #remove popup if exist
-        try:
-            popup = self.driver.find_elements(By.XPATH, "/html/body/div[1]/div/div[1]/button/svg/line[2]")
-            popup.click()
-        except:
-            pass
-
-        inputElements = self.driver.find_elements(By.TAG_NAME, "textarea")
-        inputElements[0].click()
-        inputElements[0].send_keys(prompt)
-        sleep(1)
-        inputElements[0].send_keys(Keys.ENTER)
+        inputElement = WebDriverWait(self.driver, 90).until(EC.presence_of_element_located((By.TAG_NAME, "textarea")))
+        inputElement.click()
+        inputElement.send_keys(prompt)
+        inputElement.send_keys(Keys.ENTER)
 
     def obtain_output(self):
         # Wait for the button with text "Regenerate" to appear
@@ -34,7 +26,18 @@ class chatGPTHandler:
 
         results = []
         for element in outputElements:
-            results.append(element.text)
+            # Extract text from the paragraph
+            text = element.text
+
+            # Extract links from the paragraph
+            links = element.find_elements(By.TAG_NAME, "a")
+            link_urls = [link.get_attribute("href") for link in links]
+
+            # Append text and links to results
+            if text:
+                results.append(text)
+            if link_urls:
+                results.extend(link_urls)
 
         #Clean array of "ChatGPT" non desired text
         if results and results[-1] == "ChatGPT":
