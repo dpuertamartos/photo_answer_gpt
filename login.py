@@ -12,6 +12,17 @@ class logIn:
         self.mail = mail
         self.password = password
 
+    def remove_popup(self):
+        #remove popup if exist
+        try:
+            popup_wait = WebDriverWait(self.driver, 10)
+            plugins_button = popup_wait.until(
+                EC.element_to_be_clickable((By.XPATH, "/html/body/div[1]/div/div[1]/button")))
+            plugins_button.click()
+        except TimeoutException:
+            print("could not find popup")
+            pass
+
     def choose_gpt_settings(self):
         """
         Right now hardcoded these settings
@@ -19,7 +30,6 @@ class logIn:
         'plugins': ["QuickVoice", "Link Reader"]
         :return bool:
         """
-
         try:
             model_choose_wait = WebDriverWait(self.driver, 15)
             model_4_button = model_choose_wait.until(
@@ -30,16 +40,16 @@ class logIn:
             return False
 
         try:
-            plugins_activate_wait = WebDriverWait(self.driver, 15)
+            plugins_activate_wait = WebDriverWait(self.driver, 120)
             plugins_button = plugins_activate_wait.until(
-                EC.element_to_be_clickable((By.XPATH, '/html/body/div[8]/div/div/div[2]/div[3]/span[1]')))
+                EC.element_to_be_clickable((By.XPATH, '//span[@title="Plugins"]')))
             plugins_button.click()
         except TimeoutException:
             print("could not find plugins button")
             return False
 
         try:
-            plugins_choose_wait = WebDriverWait(self.driver, 15)
+            plugins_choose_wait = WebDriverWait(self.driver, 10)
             plugins_choose_button = plugins_choose_wait.until(
                 EC.element_to_be_clickable((By.XPATH, '//span[text()="No plugins enabled"]')))
             plugins_choose_button.click()
@@ -48,7 +58,7 @@ class logIn:
             return False
 
         try:
-            plugins_choose_wait = WebDriverWait(self.driver, 15)
+            plugins_choose_wait = WebDriverWait(self.driver, 10)
             plugins_choose_button = plugins_choose_wait.until(
                 EC.element_to_be_clickable((By.XPATH, '//span[text()="QuickVoice"]')))
             plugins_choose_button.click()
@@ -57,7 +67,7 @@ class logIn:
             return False
 
         try:
-            plugins_choose_wait = WebDriverWait(self.driver, 15)
+            plugins_choose_wait = WebDriverWait(self.driver, 10)
             plugins_choose_button = plugins_choose_wait.until(
                 EC.element_to_be_clickable((By.XPATH, '//span[text()="Link Reader"]')))
             plugins_choose_button.click()
@@ -119,19 +129,40 @@ class logIn:
         #google_login
         self.google_login(platform="USAL")
 
-        # wait and press lets_go chat gpt button
-        try:
-            letsgo_wait = WebDriverWait(self.driver, 240)
-            letsgo_button = letsgo_wait.until(EC.element_to_be_clickable(
-                (By.XPATH, "/html/body/div[8]/div/div/div/div[2]/div/div[4]/button/div")))
-            letsgo_button.click()
-        except TimeoutException:
-            print("Lets go button not found. Pressing enter...")
-            body = self.driver.find_element(By.TAG_NAME, 'body')
-            body.send_keys(Keys.ENTER)
+        #check if page is loaded each 5 seconds
+        while self.driver.execute_script("return document.readyState") != "complete":
+            sleep(5)
+
+
+        #check if those elements are present to press enter and remove anoying popup, max 100s
+        elements_to_check = [
+            "/html/body/div[7]/div/div/div/div[2]/div/div[3]/div[1]/div[1]/svg",
+            "/html/body/div[7]/div/div/div/div[2]/div/div[4]/button/div",
+            "/html/body/div[8]/div/div/div/div[2]/div/div[4]/button/div"
+        ]
+
+        have_found_element = False
+        tries = 0
+        while not have_found_element and tries < 100:
+            for element in elements_to_check:
+                try:
+                    found_element = self.driver.find_element(By.XPATH, element)
+                except:
+                    found_element = None
+
+                if found_element:
+                    have_found_element = True
+                    body = self.driver.find_element(By.TAG_NAME, 'body')
+                    body.send_keys(Keys.ENTER)
+
+            if not have_found_element:
+                sleep(1)
+                tries += 1
+
+        #removing popup on top of page
+        self.remove_popup()
 
         are_settings_correct = self.choose_gpt_settings()
-        sleep(1)
 
         return are_settings_correct
 
